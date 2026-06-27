@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block content %}
+{{ macros.m_button_group([['globalSettingSaveBtn', '설정 저장'], ['globalOneExecuteBtn', '1회 실행'], ['globalImmediatelyExecuteBtn', '즉시 실행']])}}
+{{ macros.m_row_start('5') }}
+{{ macros.m_row_end() }}
+
+<nav>
+    {{ macros.m_tab_head_start() }}
+      {{ macros.m_tab_head('auto', '자동(스케쥴링)', true) }}
+      {{ macros.m_tab_head('download', '다운로드 설정', false) }}
+      {{ macros.m_tab_head('db', 'DB(데이터 관리)', false) }}
+      {{ macros.m_tab_head('notify', '알림', false) }}
+    {{ macros.m_tab_head_end() }}
+</nav>
+
+<form id='setting' name="setting">
+    <div class="tab-content" id="nav-tabContent">
+
+    {# ===== 자동(스케쥴링) 탭 ===== #}
+    {{ macros.m_tab_content_start('auto', true) }}
+        {{ macros.global_setting_scheduler_button(arg['is_include'], arg['is_running']) }}
+        {{ macros.setting_input_text('basic_interval', '스케쥴링 실행 정보',
+            value=arg['basic_interval'], col='4',
+            desc=['Inverval(minute 단위)이나 Cron 설정']) }}
+        {{ macros.setting_checkbox('basic_auto_start', '시작시 자동실행',
+            value=arg['basic_auto_start'],
+            desc='On : 시작시 자동으로 스케쥴러에 등록됩니다.') }}
+    {{ macros.m_tab_content_end() }}
+
+    {# ===== 다운로드 설정 탭 ===== #}
+    {{ macros.m_tab_content_start('download', false) }}
+        {{ macros.setting_input_text('playlist_url', 'YouTube 재생목록 URL',
+            value=arg['playlist_url'], col='8',
+            desc='KBS 특파원보고 세계는 지금 재생목록 URL') }}
+        {{ macros.setting_input_text('fetch_limit', '조회 개수',
+            value=arg['fetch_limit'], col='2',
+            desc='재생목록에서 최근 N개의 영상을 조회합니다.') }}
+        {{ macros.setting_input_text('download_dir', '다운로드 경로',
+            value=arg['download_dir'], col='6',
+            desc=['영상이 저장될 기본 경로']) }}
+        {{ macros.setting_input_text('video_format', '영상 포맷 (yt-dlp)',
+            value=arg['video_format'], col='8',
+            desc=['yt-dlp 포맷 문자열 — Plex 호환을 위해 H.264(avc1) + AAC + MP4 조합으로 제한합니다.',
+                  '기본값: bestvideo[vcodec^=avc1][ext=mp4][height<=1080]+bestaudio[ext=m4a]/best[vcodec^=avc1][ext=mp4][height<=1080]/best[ext=mp4][height<=1080]/best']) }}
+    {{ macros.m_tab_content_end() }}
+
+    {# ===== DB(데이터 관리) 탭 ===== #}
+    {{ macros.m_tab_content_start('db', false) }}
+        {{ macros.setting_input_text_and_buttons('basic_db_delete_day', 'DB 삭제 기간(일)',
+            [['globalDbDeleteDayBtn', '기간 적용 삭제', [['tag_id','basic_db_delete_day']]],
+             ['globalDbDeleteBtn', '전체 삭제']],
+            value=arg['basic_db_delete_day'], col='6') }}
+        {{ macros.setting_checkbox('basic_db_auto_delete', 'DB 자동 삭제',
+            value=arg['basic_db_auto_delete'],
+            desc=['On: 설정된 기간 기준으로 오래된 실행 이력 데이터를 자동 삭제합니다.']) }}
+        {{ macros.setting_top('에피소드 추적 DB') }}
+          <div class="input-group col-sm-6">
+            <button type="button" id="localResetEpisodesBtn" class="btn btn-warning btn-sm">에피소드 추적 초기화</button>
+          </div>
+        {{ macros.setting_bottom('worldreport_episodes 테이블 전체 삭제. 동일 영상을 다시 다운로드하려 할 때 사용. mp4 파일은 디스크에 그대로 남음.') }}
+    {{ macros.m_tab_content_end() }}
+
+    {# ===== 알림 탭 ===== #}
+    {{ macros.m_tab_content_start('notify', false) }}
+        {{ macros.setting_checkbox('use_notify_on_success', '성공 시 알림',
+            value=arg['use_notify_on_success'],
+            desc='배치 작업 성공 시 알림을 발송합니다.') }}
+        {{ macros.setting_checkbox('use_notify_on_failure', '실패 시 알림',
+            value=arg['use_notify_on_failure'],
+            desc='배치 작업 실패 시 알림을 발송합니다.') }}
+    {{ macros.m_tab_content_end() }}
+
+    </div>
+</form>
+
+<script type="text/javascript">
+  $("body").on('click', '#localResetEpisodesBtn', function(e) {
+    e.preventDefault();
+    if (!confirm('worldreport_episodes 테이블의 모든 행을 삭제합니다.\n이미 다운로드된 영상도 다음 실행 시 재다운로드됩니다.\n계속할까요?')) {
+      return;
+    }
+    globalSendCommand('reset_episodes', '', '', '', function(ret) {
+      // ret.msg 는 globalSendCommand 가 notify 로 표시
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,5 @@
+title: "특파원보고 세계는 지금 다운로더"
+version: "1.0.0"
+package_name: "worldreport"
+developer: "kukubabo"
+description: "KBS 특파원보고 세계는 지금 유튜브 재생목록에서 신규 에피소드를 자동 다운로드합니다."
